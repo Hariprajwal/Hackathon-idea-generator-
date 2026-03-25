@@ -3,7 +3,7 @@
 
 ## 🚀 Quick Start
 1. Open `index.html` in any browser.
-2. **API Key pre-filled**: `csk-x6mx2dmc3hfr245hrxfjj25tn35x33wnh62ch3cwrhh98ppc`
+2. **API Key pre-filled**: YOUR API KEY 
 3. Enter **Problem Statement** (e.g. "Sustainable energy in rural India")
 4. Pick **Focus** (Environment, Health, etc.) & **Style** (Practical/Innovative)
 5. Click **GENERATE ⚡** → Get **14-step winning design solution**!
