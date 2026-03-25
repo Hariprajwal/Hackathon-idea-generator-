@@ -1,1 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDEA GENERATOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --card: #161616;
+    --border: #222222;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #666;
+    --glow: 0 0 40px rgba(232, 255, 71, 0.15);
+  }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient blobs */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 20s ease-in-out infinite;
+  }
+  .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -150px; left: -150px; animation-delay: 0s; }
+  .blob-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; right: -100px; animation-delay: -8s; }
+
+  @keyframes drift {
+    0%, 100% { transform: translate(0,0); }
+    33% { transform: translate(40px, -30px); }
+    66% { transform: translate(-20px, 20px); }
+  }
+
+  /* Layout */
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* Header */
+  header {
+    padding: 48px 0 32px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .logo-block h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 10vw, 96px);
+    line-height: 0.9;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  .logo-block h1 span {
+    color: var(--accent);
+    display: block;
+    text-shadow: var(--glow);
+  }
+
+  .logo-block p {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .version-tag {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 2px;
+  }
+
+  /* Input area */
+  .input-zone {
+    margin-bottom: 32px;
+  }
+
+  .field-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .field-label::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .topic-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    padding: 18px 20px;
+    outline: none;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .topic-input:focus {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+    background: var(--card);
+  }
+
+  .topic-input::placeholder { color: #333; }
+
+  /* Controls row */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .select-wrap select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 12px 36px 12px 14px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color 0.2s;
+  }
+
+  .select-wrap select:hover { border-color: var(--accent); }
+
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    pointer-events: none;
+    font-size: 12px;
+  }
+
+  .generate-btn {
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    padding: 12px 36px;
+    cursor: crosshair;
+    transition: all 0.15s;
+    border-radius: 2px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .generate-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .generate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(232,255,71,0.3); }
+  .generate-btn:hover::after { opacity: 0.1; }
+  .generate-btn:active { transform: translateY(0); }
+  .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Loading state */
+  .loading-bar {
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 32px;
+    overflow: hidden;
+    display: none;
+    border-radius: 2px;
+  }
+
+  .loading-bar.active { display: block; }
+
+  .loading-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 1.2s linear infinite;
+  }
+
+  @keyframes scan {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(300%); }
+  }
+
+  /* Ideas output */
+  .ideas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .ideas-header.visible { opacity: 1; }
+
+  .ideas-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .ideas-count {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .ideas-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .idea-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideUp 0.4s forwards;
+  }
+
+  .idea-card:hover {
+    border-left-color: var(--accent);
+    background: var(--card);
+    transform: translateX(4px);
+  }
+
+  .idea-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(232,255,71,0.02), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .idea-card:hover::before { opacity: 1; }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-num {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    letter-spacing: 0.3px;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  .tag.hot { border-color: var(--accent); color: var(--accent); }
+  .tag.trending { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Copy feedback */
+  .idea-card.copied .card-num::after {
+    content: ' ✓ COPIED';
+    color: var(--accent);
+  }
+
+  /* Empty / error state */
+  .state-msg {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: none;
+  }
+
+  .state-msg.visible { display: block; }
+
+  .state-msg .big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    color: #222;
+    display: block;
+    margin-bottom: 12px;
+    letter-spacing: 4px;
+  }
+
+  /* Prompt examples */
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .chip {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding-top: 48px;
+    margin-top: 48px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #333;
+    text-transform: uppercase;
+  }
+
+/* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Hackathon sections */
+  .design-header {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  .design-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 24px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .section-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .copy-full-btn {
+    background: var(--accent2);
+    color: #0a0a0a;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 600px) {
+    header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .generate-btn { width: 100%; text-align: center; }
+  }
+
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="container">
+<header>
+    <div class="logo-block">
+      <h1>HACKATHON<span>DOMINATION</span></h1>
+      <p>DESIGN ROUND MASTER – Cerebras llama3.1-8b</p>
+    </div>
+    <span class="version-tag">v2.0 &nbsp;/&nbsp; Cerebras</span>
+  </header>
+
+  <!-- API Key -->
+  <div class="input-zone">
+    <div class="field-label">Cerebras API Key <span style="color: var(--muted); font-size: 9px;">(csk-...)</span></div>
+    <input class="topic-input" id="apiKeyInput" type="password" placeholder="Enter your csk- API key..." value="csk-x6mx2dmc3hfr245hrxfjj25tn35x33wnh62ch3cwrhh98ppc" />
+  </div>
+
+  <div class="input-zone">
+<div class="field-label">Problem Statement</div>
+    <input class="topic-input" id="topicInput" type="text"
+placeholder="e.g. sustainable energy in rural India, mental health app for students, AI for climate change..."
+  </div>
+
+<div class="chips" id="chipRow">
+    <button class="chip" onclick="setChip('Sustainable energy access in rural areas')">Rural Energy</button>
+    <button class="chip" onclick="setChip('Mental health app for college students')">Mental Health</button>
+    <button class="chip" onclick="setChip('AI tool for small farmers in India')">AI for Farmers</button>
+    <button class="chip" onclick="setChip('Climate change tracking dashboard')">Climate Track</button>
+    <button class="chip" onclick="setChip('Education platform for underprivileged kids')">Edu Access</button>
+    <button class="chip" onclick="setChip('Waste management system for cities')">Waste Mgmt</button>
+  </div>
+
+  <div class="controls">
+    <div class="select-wrap">
+<select id="categorySelect">
+        <option value="Software Product">Software Product</option>
+        <option value="Social Impact">Social Impact</option>
+        <option value="Health & Wellness">Health & Wellness</option>
+        <option value="Environment & Sustainability">Environment</option>
+        <option value="Education">Education</option>
+        <option value="FinTech">FinTech</option>
+        <option value="AI/ML Tool">AI/ML Tool</option>
+        <option value="Any">Any Category</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="countSelect">
+        <option value="5">5 Ideas</option>
+        <option value="8" selected>8 Ideas</option>
+        <option value="10">10 Ideas</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="styleSelect">
+        <option value="practical and buildable">Practical</option>
+        <option value="innovative and disruptive">Innovative</option>
+        <option value="quick win and monetizable">Quick Win</option>
+        <option value="ambitious and long-term">Ambitious</option>
+      </select>
+    </div>
+    <button class="generate-btn" id="genBtn" onclick="generateIdeas()">GENERATE ⚡</button>
+  </div>
+
+  <div class="loading-bar" id="loadingBar"></div>
+
+  <div class="ideas-header" id="ideasHeader">
+<span class="ideas-title">DESIGN SOLUTION</span>
+    <span class="ideas-count" id="ideasCount"></span>
+  </div>
+
+  <div class="ideas-grid" id="ideasGrid"></div>
+
+  <div class="state-msg" id="stateMsg">
+    <span class="big">NO IDEAS YET</span>
+    Enter a topic above and hit generate
+  </div>
+</div>
+
+<footer>
+  Click any card to copy &nbsp;&bull;&nbsp; Idea Generator by Hari &nbsp;&bull;&nbsp; Powered by Anthropic Claude
+</footer>
+
+<script>
+  // Show empty state on load
+  document.getElementById('stateMsg').classList.add('visible');
+
+  function setChip(val) {
+    document.getElementById('topicInput').value = val;
+    document.getElementById('topicInput').focus();
+  }
+
+  // Enter key
+  document.getElementById('topicInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generateIdeas();
+  });
+
+async function generateIdeas() {
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+    if (!apiKey) {
+      alert('Please enter Cerebras API key');
+      document.getElementById('apiKeyInput').focus();
+      return;
+    }
+    const problem = document.getElementById('topicInput').value.trim();
+    if (!problem) {
+      document.getElementById('topicInput').focus();
+      return;
+    }
+
+    const focus = document.getElementById('categorySelect').value;
+    const creativity = document.getElementById('styleSelect').value === 'Practical' ? 0.1 : 0.7;
+
+    // UI: loading state
+    const btn = document.getElementById('genBtn');
+    btn.disabled = true;
+    btn.textContent = 'GENERATING DESIGN...';
+    document.getElementById('loadingBar').classList.add('active');
+    document.getElementById('ideasGrid').innerHTML = '';
+    document.getElementById('stateMsg').classList.remove('visible');
+    document.getElementById('ideasHeader').classList.remove('visible');
+
+    const HACKATHON_PROMPT = `HACKATHON DOMINATION ENGINE – DESIGN ROUND MASTER MODE
+
+ROLE ASSUMPTION:
+You are an elite hackathon strategist, system architect, product thinker, and judge-level evaluator combined into one.
+
+You have deep understanding of:
+• Hackathon judging criteria
+• What makes teams win vs lose
+• System design (scalable, real-world ready)
+• UI/UX thinking
+• Practical feasibility under constraints
+• Innovation and differentiation
+
+You are NOT here to give generic ideas.
+You are here to produce WINNING SOLUTIONS.
+
+
+---
+
+CORE OBJECTIVE:
+Given a problem statement, generate a COMPLETE, HIGH-SCORING DESIGN SOLUTION that can dominate a hackathon design round.
+
+You must think like:
+• A judge (what gets marks)
+• A builder (what is feasible)
+• A user (what actually helps)
+• A strategist (what stands out)
+
+
+---
+
+STEP 1: PROBLEM DECONSTRUCTION (CRITICAL)
+
+• Rewrite the problem in your own words
+• Identify:
+  - Core problem
+  - Hidden problem (root cause)
+  - Who is affected (${focus})
+  - Why existing solutions fail
+
+• Define:
+  - Primary user
+  - Secondary stakeholders
+  - Pain points (clear and specific)
+
+
+---
+
+STEP 2: SOLUTION CONCEPT (HIGH IMPACT)
+
+• Present a clear solution name
+• One-line powerful idea (pitch line)
+• Explain how it solves the root problem (not surface-level)
+
+• MUST include:
+  - What makes it DIFFERENT
+  - Why it will WORK in real life
+
+
+---
+
+STEP 3: FEATURE BREAKDOWN (JUDGE SCORING AREA)
+
+Divide into:
+
+• Core Features (must-have)
+• Smart Features (adds innovation)
+• WOW Features (differentiator – judges remember this)
+
+Each feature must include:
+• What it does
+• Why it exists
+• How it helps the user
+
+
+---
+
+STEP 4: USER FLOW (VERY IMPORTANT)
+
+• Step-by-step user journey
+• From entry → action → result
+• Should feel simple and intuitive
+
+Example:
+User opens app → logs in → selects X → gets Y → outcome Z
+
+
+---
+
+STEP 5: UI/UX DESIGN (DESIGN ROUND GOLD)
+
+• Describe screens:
+  - Home screen
+  - Main interaction screen
+  - Output/result screen
+
+• Mention:
+  - Simplicity
+  - Accessibility
+  - Mobile-first thinking
+
+• Add small UX details:
+  - Notifications
+  - Feedback states
+  - Error handling
+
+
+---
+
+STEP 6: SYSTEM ARCHITECTURE (HIGH MARKS SECTION)
+
+Clearly define:
+
+• Frontend (what user interacts with)
+• Backend (logic & processing)
+• Database (data storage)
+• APIs (communication layer)
+• External services (if any)
+
+Also include:
+• Basic architecture diagram (text-based)
+
+Example:
+User → Frontend → API → Backend → Database
+
+
+---
+
+STEP 7: TECH STACK (REALISTIC & SMART)
+
+• Frontend (React, Flutter, etc.)
+• Backend (Node.js, Django, etc.)
+• Database (MongoDB, PostgreSQL, etc.)
+• AI/ML (if used – explain WHY, not just buzzword)
+
+IMPORTANT:
+• Justify choices
+• Keep it hackathon-feasible
+
+
+---
+
+STEP 8: INNOVATION & UNIQUENESS (WINNING FACTOR)
+
+• What makes this solution stand out?
+• Why hasn’t this been done before?
+• What is your unfair advantage?
+
+
+---
+
+STEP 9: FEASIBILITY (JUDGES CARE A LOT)
+
+• Can this be built in limited time?
+• MVP (Minimum Viable Product)
+• What will be completed in hackathon vs future scope
+
+
+---
+
+STEP 10: IMPACT ANALYSIS
+
+• Who benefits?
+• Scale of impact (local → global)
+• Social / economic / environmental impact
+
+
+---
+
+STEP 11: MONETIZATION / SUSTAINABILITY (BONUS POINTS)
+
+• How can this be sustained?
+• Revenue model (if applicable)
+• Long-term viability
+
+
+---
+
+STEP 12: RISKS & EDGE CASES (RARE BUT POWERFUL)
+
+• What could go wrong?
+• Limitations
+• How to handle failures
+
+
+---
+
+STEP 13: FUTURE SCOPE (SHOW VISION)
+
+• What can be added later?
+• Expansion ideas
+• Advanced features
+
+
+---
+
+STEP 14: 30-SECOND PITCH (VERY IMPORTANT)
+
+Give a powerful short pitch:
+• Problem → Solution → Impact → Why it wins
+
+
+---
+
+BONUS INTELLIGENCE (AUTO-APPLY):
+
+You MUST automatically:
+• Avoid generic ideas
+• Avoid overcomplicated solutions
+• Balance innovation + feasibility
+• Optimize for judge psychology
+• Make solution EASY to explain
+
+
+---
+
+OUTPUT RULES:
+
+• Use clear headings
+• No fluff
+• No vague ideas
+• Everything must feel buildable
+• Think like a WINNING TEAM
+
+
+---
+
+FINAL DIRECTIVE:
+Your output should make judges think:
+“This team knows exactly what they’re doing.”
+
+PROBLEM STATEMENT: ${problem}`;
+
+    try {
+      const res = await fetch("https://api.cerebras.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "llama3.1-8b",
+          messages: [
+            { role: "system", content: HACKATHON_PROMPT },
+            { role: "user", content: problem }
+          ],
+          max_tokens: 4096,
+          temperature: creativity,
+          top_p: 1,
+          stream: false
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const content = data.choices[0].message.content;
+
+      renderHackathon(content, problem);
+    } catch (err) {
+      document.getElementById('ideasGrid').innerHTML = '';
+      document.getElementById('stateMsg').innerHTML = `<span class="big">API ERROR</span>${err.message}. Check key/endpoint.`;
+      document.getElementById('stateMsg').classList.add('visible');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'GENERATE ⚡';
+      document.getElementById('loadingBar').classList.remove('active');
+    }
+  }
+
+  function renderHackathon(content, problem) {
+    const grid = document.getElementById('ideasGrid');
+    const header = document.getElementById('ideasHeader');
+    const countEl = document.getElementById('ideasCount');
+
+    grid.innerHTML = `
+      <button class="copy-full-btn" onclick="copyFullResponse('${content.replace(/'/g, "\\'")}')">COPY FULL DESIGN</button>
+      <div class="design-header">COMPLETE DESIGN SOLUTION for "${problem}"</div>
+      ${parseSteps(content)}
+    `;
+    countEl.textContent = '14 Steps – Ready to Pitch';
+    header.classList.add('visible');
+  }
+
+  function parseSteps(content) {
+    // Clean markdown
+    let clean = content
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      .replace(/(-|\*)\s+(.*?)(?=\n(-|\*|\n|$))/g, '<li>$2</li>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/^### (.*)$/gm, '<h4>$1</h4>')
+      .replace(/^## (.*)$/gm, '<h3>$1</h3>')
+      .replace(/^# (.*)$/gm, '<h2>$1</h2>')
+      .replace(/\n/g, '<br>');
+
+    const steps = content.match(/STEP (\d+):(.+?)(?=STEP \d+:|$)/gs) || [];
+    return steps.map((match) => {
+      const num = match.match(/STEP (\d+)/)[1];
+      const text = match.replace(/STEP \d+:/i, '').trim();
+      return `
+        <div class="design-section">
+          <div class="section-title">STEP ${num}</div>
+          <div class="section-content">${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function copyFullResponse(content) {
+    navigator.clipboard.writeText(content).then(() => {
+      const btn = document.querySelector('.copy-full-btn');
+      btn.textContent = 'COPIED ✓';
+      setTimeout(() => btn.textContent = 'COPY FULL DESIGN', 2000);
+    });
+  }
+
+  function renderIdeas(ideas, topic) {
+    const grid = document.getElementById('ideasGrid');
+    const header = document.getElementById('ideasHeader');
+    const countEl = document.getElementById('ideasCount');
+
+    grid.innerHTML = '';
+    countEl.textContent = `${ideas.length} results for "${topic}"`;
+    header.classList.add('visible');
+
+    ideas.forEach((idea, i) => {
+      const card = document.createElement('div');
+      card.className = 'idea-card';
+      card.style.animationDelay = `${i * 60}ms`;
+
+      const tagsHtml = (idea.tags || []).map(t => {
+        const cls = idea.highlight === 'hot' && t === idea.tags[0] ? 'hot' :
+                    idea.highlight === 'trending' && t === idea.tags[0] ? 'trending' : '';
+        return `<span class="tag ${cls}">${t}</span>`;
+      }).join('');
+
+      const badge = idea.highlight === 'hot' ? '<span class="tag hot">🔥 HOT</span>' :
+                    idea.highlight === 'trending' ? '<span class="tag trending">📈 TRENDING</span>' : '';
+
+      card.innerHTML = `
+        <span class="card-num">IDEA ${String(i+1).padStart(2,'0')}</span>
+        <div class="card-title">${idea.title}</div>
+        <div class="card-desc">${idea.description}</div>
+        <div class="card-tags">${tagsHtml}${badge}</div>
+      `;
+
+      // Copy on click
+      card.addEventListener('click', () => {
+        const text = `${idea.title}\n\n${idea.description}`;
+        navigator.clipboard.writeText(text).then(() => {
+          card.classList.add('copied');
+          setTimeout(() => card.classList.remove('copied'), 2000);
+        });
+      });
+
+      grid.appendChild(card);
+    });
+  }
+</script>
+</body>
+</html>
